@@ -4,6 +4,8 @@
 
 #define ESP_RX 0
 #define ESP_TX 1
+#define LOCK_RELAY 4
+#define BUZZER 5
 #define GRANT_PIN 6
 #define REVOKE_PIN 7
 #define SPI_RST 9
@@ -15,6 +17,8 @@ MFRC522 mfrc522(SPI_SS, SPI_RST); // Define the pins for RFID module (SS, RST)
 void setup() {
   pinMode(GRANT_PIN, OUTPUT);
   pinMode(REVOKE_PIN, OUTPUT);
+  pinMode(LOCK_RELAY, OUTPUT);
+  pinMode(BUZZER, OUTPUT);
   Serial.begin(9600);
   espSerial.begin(9600);
   SPI.begin();
@@ -49,16 +53,21 @@ void loop() {
     Serial.println(response);
     if (response.substring(5) == "true") {
       Serial.println("GRANTED!");
-      digitalWrite(GRANT_PIN, HIGH); // Turn on pin 6
-      digitalWrite(REVOKE_PIN, LOW);  // Turn off pin 7
+      digitalWrite(GRANT_PIN, HIGH);
+      digitalWrite(LOCK_RELAY, HIGH);
+      digitalWrite(REVOKE_PIN, LOW);
     } else {
       Serial.println("REVOKED!");
-      digitalWrite(GRANT_PIN, LOW);   // Turn off pin 6
-      digitalWrite(REVOKE_PIN, HIGH);  // Turn on pin 7
+      digitalWrite(GRANT_PIN, LOW);
+      digitalWrite(LOCK_RELAY, LOW);
+      digitalWrite(REVOKE_PIN, HIGH);
+      digitalWrite(BUZZER, HIGH);
     }
     delay(5000);
-    digitalWrite(GRANT_PIN, LOW);   // Turn off pin 6
-    digitalWrite(REVOKE_PIN, LOW);  // Turn off pin 7
+    digitalWrite(GRANT_PIN, LOW);
+    digitalWrite(REVOKE_PIN, LOW);
+    digitalWrite(LOCK_RELAY, LOW);
+    digitalWrite(BUZZER, LOW);
     Serial.println("Deactivating, next RFID please...");
   }
 }
