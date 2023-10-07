@@ -25,3 +25,5 @@
 4. Make required adjustment over `ssid`, `password`, and `url` constants in `esp8266.ino` file.
 
 5. Compile, Verify, and Upload code into ESP8266.
+
+6. (Optional) Open `Tools`->`Serial Monitor` at baud rate `9600` to debug ESP8266.
