@@ -2,8 +2,8 @@
 #include <MFRC522.h>
 #include <SoftwareSerial.h>
 
-#define ESP_RX 0
-#define ESP_TX 1
+#define ESP_RX 2
+#define ESP_TX 3
 #define LOCK_RELAY 4
 #define BUZZER 5
 #define GRANT_PIN 6
@@ -23,6 +23,8 @@ void setup() {
   espSerial.begin(9600);
   SPI.begin();
   mfrc522.PCD_Init();
+  digitalWrite(LOCK_RELAY, HIGH);
+  digitalWrite(BUZZER, LOW);
   Serial.println("Reader Ready");
 }
 
@@ -31,7 +33,8 @@ void loop() {
     Serial.println("New RFID present, reading...");
     String cardData = "";
     for (byte i = 0; i < mfrc522.uid.size; i++) {
-      cardData += String(mfrc522.uid.uidByte[i], HEX);
+      String byteRead = String(mfrc522.uid.uidByte[i], HEX);
+      cardData += byteRead.length() > 1 ? byteRead : ("0" + byteRead);
     }
     Serial.print("RFID Data:");
     Serial.println(cardData);
@@ -40,33 +43,33 @@ void loop() {
     // Send data to NodeMCU
     espSerial.println("MARCO:" + cardData);
 
-    // Wait for a response from NodeMCU
-    while (!espSerial.available()) {
-      delay(10);
-    }
-
     String response;
     do {
+      // Wait for a response from NodeMCU
+      while (!espSerial.available()) {
+        delay(10);
+      }
       response = espSerial.readStringUntil('\n');
-    } while (response.startsWith("POLO:"));
+      Serial.println("Client response:" + response);
+    } while (!response.startsWith("POLO:"));
     Serial.print("Got response:");
     Serial.println(response);
     if (response.substring(5) == "true") {
       Serial.println("GRANTED!");
       digitalWrite(GRANT_PIN, HIGH);
-      digitalWrite(LOCK_RELAY, HIGH);
+      digitalWrite(LOCK_RELAY, LOW);
       digitalWrite(REVOKE_PIN, LOW);
     } else {
       Serial.println("REVOKED!");
       digitalWrite(GRANT_PIN, LOW);
-      digitalWrite(LOCK_RELAY, LOW);
+      digitalWrite(LOCK_RELAY, HIGH);
       digitalWrite(REVOKE_PIN, HIGH);
       digitalWrite(BUZZER, HIGH);
     }
     delay(5000);
     digitalWrite(GRANT_PIN, LOW);
     digitalWrite(REVOKE_PIN, LOW);
-    digitalWrite(LOCK_RELAY, LOW);
+    digitalWrite(LOCK_RELAY, HIGH);
     digitalWrite(BUZZER, LOW);
     Serial.println("Deactivating, next RFID please...");
   }
