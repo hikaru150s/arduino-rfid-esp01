@@ -28,7 +28,7 @@ void setup() {
 
 void loop() {
   if (mfrc522.PICC_IsNewCardPresent() && mfrc522.PICC_ReadCardSerial()) {
-    Serial.println("New RFID present, reading...")''
+    Serial.println("New RFID present, reading...");
     String cardData = "";
     for (byte i = 0; i < mfrc522.uid.size; i++) {
       cardData += String(mfrc522.uid.uidByte[i], HEX);
